@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated model and data
+models/
+railwaydata_synthetic.csv
+
+# Streamlit secrets/config
+.streamlit/secrets.toml
+
+# OS/editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

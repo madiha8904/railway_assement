@@ -1,0 +1,4 @@
+asset_id,asset_age,previous_failures,days_since_maintenance,usage,condition,criticality,risk
+A001,15,4,180,90,35,5,1
+A002,5,0,60,50,85,3,0
+A003,12,3,150,80,45,5,1
