@@ -20,34 +20,44 @@ NUMERIC_FEATURES = [
 ]
 FEATURES = ["asset_type"] + NUMERIC_FEATURES
 
-# Re-create the same fictional 1,500-row dataset each run. Replace it with
-# historical data before using a model for any real operational purpose.
-data = create_synthetic_dataset()
-data.to_csv(DATA_PATH, index=False)
-X = data[FEATURES]
-y = data["risk"]
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
 
-preprocessor = ColumnTransformer([
-    ("asset_type", OneHotEncoder(handle_unknown="ignore"), ["asset_type"]),
-    ("numeric", "passthrough", NUMERIC_FEATURES),
-])
-model = Pipeline([
-    ("preprocessor", preprocessor),
-    ("classifier", RandomForestClassifier(
-        n_estimators=200, random_state=42, class_weight="balanced"
-    )),
-])
-model.fit(X_train, y_train)
+def train_and_save_model() -> dict:
+    """Create the demo data, train its model, and return evaluation details."""
+    data = create_synthetic_dataset()
+    data.to_csv(DATA_PATH, index=False)
+    X = data[FEATURES]
+    y = data["risk"]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
 
-predictions = model.predict(X_test)
-print(f"Synthetic dataset created: {DATA_PATH}")
-print("Accuracy:", f"{accuracy_score(y_test, predictions):.3f}")
-print("\nClassification Report:")
-print(classification_report(y_test, predictions))
+    preprocessor = ColumnTransformer([
+        ("asset_type", OneHotEncoder(handle_unknown="ignore"), ["asset_type"]),
+        ("numeric", "passthrough", NUMERIC_FEATURES),
+    ])
+    model = Pipeline([
+        ("preprocessor", preprocessor),
+        ("classifier", RandomForestClassifier(
+            n_estimators=200, random_state=42, class_weight="balanced"
+        )),
+    ])
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
 
-MODEL_PATH.parent.mkdir(exist_ok=True)
-joblib.dump(model, MODEL_PATH)
-print(f"\nModel saved successfully: {MODEL_PATH}")
+    MODEL_PATH.parent.mkdir(exist_ok=True)
+    joblib.dump(model, MODEL_PATH)
+    return {
+        "rows": len(data),
+        "accuracy": accuracy_score(y_test, predictions),
+        "report": classification_report(y_test, predictions),
+        "model_path": MODEL_PATH,
+    }
+
+
+if __name__ == "__main__":
+    result = train_and_save_model()
+    print(f"Synthetic dataset created: {DATA_PATH} ({result['rows']} rows)")
+    print("Accuracy:", f"{result['accuracy']:.3f}")
+    print("\nClassification Report:")
+    print(result["report"])
+    print(f"\nModel saved successfully: {result['model_path']}")

@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from maintenance_scheduler import schedule_maintenance_tasks
+from train_model import train_and_save_model
 
 
 st.set_page_config(page_title="Railway Asset Risk Predictor", page_icon="🚆")
@@ -29,9 +30,13 @@ st.write("Estimate maintenance risk using a synthetic railway-asset demonstratio
 st.warning("Demo only: this model uses artificial data and must not support real safety decisions.")
 
 if not MODEL_PATH.exists():
-    st.error("Trained model not found. Run the command below once from the project folder.")
-    st.code("python train_model.py")
-    st.stop()
+    with st.spinner("Preparing the synthetic demo model for first use..."):
+        try:
+            train_and_save_model()
+        except Exception as error:
+            st.error("The demo model could not be created.")
+            st.exception(error)
+            st.stop()
 
 try:
     model = load_model()
